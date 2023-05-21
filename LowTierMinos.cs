@@ -33,7 +33,7 @@ namespace LowTierMinos
 
         public static string ModPath()
         {
-            return Assembly.GetExecutingAssembly().Location.Substring(0, Assembly.GetExecutingAssembly().Location.LastIndexOf(@"\"));
+            return Assembly.GetExecutingAssembly().Location.Substring(0, Assembly.GetExecutingAssembly().Location.LastIndexOf(Path.DirectorySeparatorChar));
         }
 
         public override void OnModUnload()
