@@ -1,10 +1,12 @@
-﻿using UMM;
+using UMM;
 using UnityEngine;
 using HarmonyLib;
 using System.IO;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using UnityEngine.Networking;
+using System.Collections;
 
 namespace LowTierMinos
 {
@@ -13,18 +15,41 @@ namespace LowTierMinos
     {
         private static Harmony harmony;
 
-        internal static AssetBundle LowTierMinosBundle;
+        internal static AudioClip minosSpeech;
+
+        private IEnumerator LoadSpeech(string filePath, AudioType type)
+        {
+            if(!File.Exists(filePath))
+            {
+                Debug.LogWarning($"Could not locate minos speech at {filePath}");
+                yield break;
+            }
+
+            UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip($"file:\\\\{filePath}", type);
+            yield return req.SendWebRequest();
+
+            try
+            {
+                AudioClip clip = DownloadHandlerAudioClip.GetContent(req);
+                if (clip != null)
+                    minosSpeech = clip;
+                else
+                    Debug.LogWarning($"Could not load the minos speech from {filePath}");
+            }
+            catch(Exception e)
+            {
+                Debug.LogWarning($"Exception thrown while attempting to load minos speech from {filePath}");
+                Debug.LogWarning(e);
+            }
+        }
 
         public override void OnModLoaded()
         {
             Debug.Log("end thyself (low tier minos starting)");
 
-            //load the asset bundle
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "lowtierminos";
-            {
-                LowTierMinosBundle = AssetBundle.LoadFromFile(Path.Combine(ModPath(), resourceName));
-            }
+            //load the voice file
+            var resourceName = "lowtierminos.ogg";
+            StartCoroutine(LoadSpeech(Path.Combine(ModPath(), resourceName), AudioType.OGGVORBIS));
 
             //start harmonylib to swap assets
             harmony = new Harmony("ltg.Minos");
@@ -33,7 +58,7 @@ namespace LowTierMinos
 
         public static string ModPath()
         {
-            return Assembly.GetExecutingAssembly().Location.Substring(0, Assembly.GetExecutingAssembly().Location.LastIndexOf(Path.DirectorySeparatorChar));
+            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
         public override void OnModUnload()
@@ -66,7 +91,7 @@ namespace LowTierMinos
                         if (source.clip.GetName() == "mp_intro2")
                         {
                             Debug.Log("Replacing minos intro");
-                            source.clip = LowTierMinosBundle.LoadAsset<AudioClip>("lowtierminos.ogg");
+                            source.clip = minosSpeech;
                             replaced = true;
 
                             subtitles.Add(MakeLine("You are a worthless", 0f));
