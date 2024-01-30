@@ -1,6 +1,6 @@
-﻿using UMM;
 using UnityEngine;
 using HarmonyLib;
+using BepInEx;
 using System.IO;
 using System;
 using System.Reflection;
@@ -8,15 +8,16 @@ using System.Collections.Generic;
 
 namespace LowTierMinos
 {
-    [UKPlugin("ltg.Minos", "Low Tier Minos Speech", "1.0.0", "Replaces Minos Prime's intro with a low tier one.\nOriginal audio: https://www.youtube.com/watch?v=qz5EHyaLhkI", true, false)]
-    public class LowTier : UKMod
+    [BepInPlugin("ImNotSimon.LowTierMinos", "LowTierMinos", "1.1.0")]
+    public class Plugin : BaseUnityPlugin
     {
         private static Harmony harmony;
 
         internal static AssetBundle LowTierMinosBundle;
 
-        public override void OnModLoaded()
+        private void Awake()
         {
+            // Plugin startup logic
             Debug.Log("end thyself (low tier minos starting)");
 
             //load the asset bundle
@@ -35,13 +36,6 @@ namespace LowTierMinos
         {
             return Assembly.GetExecutingAssembly().Location.Substring(0, Assembly.GetExecutingAssembly().Location.LastIndexOf(Path.DirectorySeparatorChar));
         }
-
-        public override void OnModUnload()
-        {
-            harmony.UnpatchSelf();
-            base.OnModUnload();
-        }
-
         private static SubtitledAudioSource.SubtitleDataLine MakeLine(string subtitle, float time)
         {
             var sub = new SubtitledAudioSource.SubtitleDataLine();
